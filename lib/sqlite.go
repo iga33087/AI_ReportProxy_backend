@@ -149,6 +149,53 @@ func GetDevice(db *sql.DB) ([]Device, error) {
 	return devices, nil
 }
 
+func GetDeviceById(db *sql.DB,id any) (*Device, error) {
+	query := `SELECT 
+	id, 
+	name, 
+	uuid, 
+	key, 
+	cpu_usage_summary,
+	memory_usage_summary,
+	new_connection_summary,
+	active_connection_summary,
+	online_verification_summary,
+	online_users_summary,
+	top20UserTrafficRanking,
+	top20UserTrafficGroupRanking,
+	top20ServiceTrafficRanking,
+	top20ServiceTrafficTypeRanking,
+	top20DomainTrafficRanking,
+	top20DomainTrafficTypeRanking 
+	FROM devices WHERE id = ?`
+
+	var d Device
+
+	err := db.QueryRow(query, id).Scan(
+		&d.ID, 
+		&d.Name, 
+		&d.UUID, 
+		&d.Key,
+		&d.HardwareData.CPU_Usage_Summary,
+		&d.HardwareData.Memory_Usage_Summary,
+		&d.HardwareData.New_Connection_Summary,
+		&d.HardwareData.Active_Connection_Summary,
+		&d.HardwareData.Online_Verification_Summary,
+		&d.HardwareData.Online_Users_Summary,
+		&d.UserTrafficData.Top20_UserTraffic_Ranking,
+		&d.UserTrafficData.Top20_UserTraffic_Group_Ranking,
+		&d.ServiceTrafficData.Top20_ServiceTraffic_Ranking,
+		&d.ServiceTrafficData.Top20_ServiceTraffic_Type_Ranking,
+		&d.DomainTrafficData.Top20_DomainTraffic_Ranking,
+		&d.DomainTrafficData.Top20_DomainTraffic_Type_Ranking,
+	)
+	
+	if err != nil {
+		return nil, err 
+	}
+	return &d, nil
+}
+
 // 新增
 func CreateDevice(db *sql.DB, device Device) (int64, error) {
 	query := `INSERT INTO devices (

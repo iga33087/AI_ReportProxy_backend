@@ -40,6 +40,13 @@ func Call(url string,method string,header map[string]string, payload map[string]
 	req,_ := createRequest(url,method,header,payload)
 	client := createClient()
     resp, err := client.Do(req)
+	if err != nil {
+		return nil,err
+	}
+    if resp.StatusCode != http.StatusOK { // 或者 resp.StatusCode >= 400
+        fmt.Printf("API 發生錯誤，狀態碼：%d\n", resp.StatusCode)
+        return nil,fmt.Errorf("API 請求失敗，狀態碼：%d", resp.StatusCode)
+    }
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
