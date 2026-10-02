@@ -1,7 +1,7 @@
 package device
 
 import (
-	"log"
+	//"log"
 	"fmt"
 	"net/http"
 	"AI-Proxy-backend/lib"
@@ -21,12 +21,12 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 func GetList(c *gin.Context) {
   db, err := sqlite.InitDB()
   if err != nil {
-  	log.Fatal(err)
+  	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
   }
   defer db.Close()
   list, err := sqlite.GetDevice(db)
   if err != nil {
-  	log.Fatal(err)
+  	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
   }
   fmt.Println("獲取成功:", list)
   c.JSON(http.StatusOK, gin.H{"data": list})
@@ -44,7 +44,7 @@ func PostData(c *gin.Context) {
 
   db, err := sqlite.InitDB()
   if err != nil {
-  	log.Fatal(err)
+  	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
   }
   defer db.Close()
   id, err := sqlite.CreateDevice(db,body)
@@ -67,7 +67,7 @@ func UpdateData(c *gin.Context) {
 
   db, err := sqlite.InitDB()
   if err != nil {
-  	log.Fatal(err)
+  	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
   }
   defer db.Close()
   uid, err := sqlite.UpdateDevice(db,body)
@@ -85,7 +85,7 @@ func DelData(c *gin.Context) {
 
   db, err := sqlite.InitDB()
   if err != nil {
-  	log.Fatal(err)
+  	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
   }
   defer db.Close()
   uid, err := sqlite.DeleteDevice(db,id)

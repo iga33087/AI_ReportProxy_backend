@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	//"fmt"
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -11,10 +12,9 @@ type Device struct {
 	UUID string `json:"uuid"`
 	Key string `json:"key"`
 	HardwareData HardwareData `json:"hardwareData"`
-	//HardwareData HardwareData
-	//UserTrafficData UserTrafficData
-	//ServiceTrafficData ServiceTrafficData
-	//DomainTrafficData DomainTrafficData
+	UserTrafficData UserTrafficData `json:"userTrafficData"`
+	ServiceTrafficData ServiceTrafficData `json:"serviceTrafficData"`
+	DomainTrafficData DomainTrafficData `json:"domainTrafficData"`
 }
 
 type HardwareData struct {
@@ -27,18 +27,18 @@ type HardwareData struct {
 }
 
 type UserTrafficData struct {
-    Top20Ranking string
-    Top20GroupRanking string
+    Top20_UserTraffic_Ranking string `json:"top20UserTrafficRanking"`
+    Top20_UserTraffic_Group_Ranking string `json:"top20UserTrafficGroupRanking"`
 }
 
 type ServiceTrafficData struct {
-    Top20Ranking string
-    Top20TypeRanking string
+    Top20_ServiceTraffic_Ranking string `json:"top20ServiceTrafficRanking"`
+    Top20_ServiceTraffic_Type_Ranking string `json:"top20ServiceTrafficTypeRanking"`
 }
 
 type DomainTrafficData struct {
-    Top20Ranking string
-    Top20TypeRanking string
+    Top20_DomainTraffic_Ranking string `json:"top20DomainTrafficRanking"`
+    Top20_DomainTraffic_Type_Ranking string `json:"top20DomainTrafficTypeRanking"`
 }
 
 // 初始化資料庫
@@ -63,7 +63,19 @@ func createTable(db *sql.DB) error {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL,
 		key TEXT NOT NULL,
-		uuid TEXT NOT NULL UNIQUE
+		uuid TEXT NOT NULL UNIQUE,
+		cpu_usage_summary TEXT,
+		memory_usage_summary TEXT,
+		new_connection_summary TEXT,
+		active_connection_summary TEXT,
+		online_verification_summary TEXT,
+		online_users_summary TEXT,
+		top20UserTrafficRanking TEXT,
+		top20UserTrafficGroupRanking TEXT,
+		top20ServiceTrafficRanking TEXT,
+		top20ServiceTrafficTypeRanking TEXT,
+		top20DomainTrafficRanking TEXT,
+		top20DomainTrafficTypeRanking TEXT
 	);
 	`
 
@@ -73,7 +85,24 @@ func createTable(db *sql.DB) error {
 
 // 查詢全部
 func GetDevice(db *sql.DB) ([]Device, error) {
-	query := `SELECT id, name, uuid, key FROM devices`
+	query := `SELECT 
+	id, 
+	name, 
+	uuid, 
+	key, 
+	cpu_usage_summary,
+	memory_usage_summary,
+	new_connection_summary,
+	active_connection_summary,
+	online_verification_summary,
+	online_users_summary,
+	top20UserTrafficRanking,
+	top20UserTrafficGroupRanking,
+	top20ServiceTrafficRanking,
+	top20ServiceTrafficTypeRanking,
+	top20DomainTrafficRanking,
+	top20DomainTrafficTypeRanking 
+	FROM devices`
 
 	rows, err := db.Query(query)
 	if err != nil {
@@ -93,6 +122,18 @@ func GetDevice(db *sql.DB) ([]Device, error) {
 			&device.Name,
 			&device.UUID,
 			&device.Key,
+		    &device.HardwareData.CPU_Usage_Summary,
+		    &device.HardwareData.Memory_Usage_Summary,
+		    &device.HardwareData.New_Connection_Summary,
+		    &device.HardwareData.Active_Connection_Summary,
+		    &device.HardwareData.Online_Verification_Summary,
+		    &device.HardwareData.Online_Users_Summary,
+			&device.UserTrafficData.Top20_UserTraffic_Ranking,
+			&device.UserTrafficData.Top20_UserTraffic_Group_Ranking,
+			&device.ServiceTrafficData.Top20_ServiceTraffic_Ranking,
+			&device.ServiceTrafficData.Top20_ServiceTraffic_Type_Ranking,
+			&device.DomainTrafficData.Top20_DomainTraffic_Ranking,
+			&device.DomainTrafficData.Top20_DomainTraffic_Type_Ranking,
 		)
 		if err != nil {
 			return nil, err
@@ -110,9 +151,43 @@ func GetDevice(db *sql.DB) ([]Device, error) {
 
 // 新增
 func CreateDevice(db *sql.DB, device Device) (int64, error) {
-	query := `INSERT INTO devices (name, uuid, key)VALUES (?, ?, ?)`
+	query := `INSERT INTO devices (
+	name, 
+	uuid, 
+	key,
+	cpu_usage_summary,
+	memory_usage_summary,
+	new_connection_summary,
+	active_connection_summary,
+	online_verification_summary,
+	online_users_summary,
+	top20UserTrafficRanking,
+	top20UserTrafficGroupRanking,
+	top20ServiceTrafficRanking,
+	top20ServiceTrafficTypeRanking,
+	top20DomainTrafficRanking,
+	top20DomainTrafficTypeRanking 
+	)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	result, err := db.Exec(query, device.Name, device.UUID, device.Key)
+	result, err := db.Exec(
+		query, 
+		device.Name, 
+		device.UUID, 
+		device.Key,
+		device.HardwareData.CPU_Usage_Summary,
+		device.HardwareData.Memory_Usage_Summary,
+		device.HardwareData.New_Connection_Summary,
+		device.HardwareData.Active_Connection_Summary,
+		device.HardwareData.Online_Verification_Summary,
+		device.HardwareData.Online_Users_Summary,
+		device.UserTrafficData.Top20_UserTraffic_Ranking,
+		device.UserTrafficData.Top20_UserTraffic_Group_Ranking,
+		device.ServiceTrafficData.Top20_ServiceTraffic_Ranking,
+		device.ServiceTrafficData.Top20_ServiceTraffic_Type_Ranking,
+		device.DomainTrafficData.Top20_DomainTraffic_Ranking,
+		device.DomainTrafficData.Top20_DomainTraffic_Type_Ranking,
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -122,9 +197,43 @@ func CreateDevice(db *sql.DB, device Device) (int64, error) {
 
 // 修改
 func UpdateDevice(db *sql.DB,device Device) (any, error) {
-	query := `UPDATE devices SET name = ?, uuid = ?, key = ? WHERE id = ?`
+	query := `UPDATE devices SET 
+	name = ?, 
+	uuid = ?, 
+	key = ?,
+	cpu_usage_summary = ?,
+	memory_usage_summary = ?,
+	new_connection_summary = ?,
+	active_connection_summary = ?,
+	online_verification_summary = ?,
+	online_users_summary = ?,
+	top20UserTrafficRanking = ?,
+	top20UserTrafficGroupRanking = ?,
+	top20ServiceTrafficRanking = ?,
+	top20ServiceTrafficTypeRanking = ?,
+	top20DomainTrafficRanking = ?,
+	top20DomainTrafficTypeRanking = ?  
+	WHERE id = ?`
 
-	result, err := db.Exec(query, device.Name, device.UUID, device.Key, device.ID)
+	result, err := db.Exec(
+		query, 
+		device.Name, 
+		device.UUID, 
+		device.Key, 
+		device.HardwareData.CPU_Usage_Summary,
+		device.HardwareData.Memory_Usage_Summary,
+		device.HardwareData.New_Connection_Summary,
+		device.HardwareData.Active_Connection_Summary,
+		device.HardwareData.Online_Verification_Summary,
+		device.HardwareData.Online_Users_Summary,
+		device.UserTrafficData.Top20_UserTraffic_Ranking,
+		device.UserTrafficData.Top20_UserTraffic_Group_Ranking,
+		device.ServiceTrafficData.Top20_ServiceTraffic_Ranking,
+		device.ServiceTrafficData.Top20_ServiceTraffic_Type_Ranking,
+		device.DomainTrafficData.Top20_DomainTraffic_Ranking,
+		device.DomainTrafficData.Top20_DomainTraffic_Type_Ranking,
+		device.ID,
+	)
 	if err != nil {
 		return nil,err
 	}
