@@ -7,56 +7,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Album 代表專輯資料的結構體
-type Album struct {
-	ID     string  `json:"id" binding:"required"`
-	Title  string  `json:"title" binding:"required"`
-	Artist string  `json:"artist"`
-	Price  float64 `json:"price"`
-}
-
-// 模擬記憶體資料庫
-var albums = []Album{
-	{ID: "1", Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
-	{ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
-}
-
 func main() {
-	router := gin.Default()
-	v1 := router.Group("/")
+	r := gin.Default()
+	v1 := r.Group("/")
 	{
-		v1.GET("/albums", getAlbums)
-		v1.GET("/albums/:id", getAlbumByID)
-		v1.POST("/albums", postAlbums)
+		v1.GET("/", getTest)
 	}
-	device.RegisterRoutes(v1)
-	router.Run(":8080")
+	router.RegisterDeviceRoutes(v1)
+	router.RegisterReportRoutes(v1)
+	r.Run(":8080")
 }
 
-func getAlbums(c *gin.Context) {
-	c.JSON(http.StatusOK, albums)
-}
-
-func getAlbumByID(c *gin.Context) {
-	id := c.Param("id")
-
-	for _, a := range albums {
-		if a.ID == id {
-			c.JSON(http.StatusOK, a)
-			return
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{"message": "album not found"})
-}
-
-func postAlbums(c *gin.Context) {
-	var newAlbum Album
-
-	if err := c.ShouldBindJSON(&newAlbum); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	albums = append(albums, newAlbum)
-	c.JSON(http.StatusCreated, newAlbum)
+func getTest(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "HI"})
 }

@@ -1,4 +1,4 @@
-package device
+package router
 
 import (
 	//"log"
@@ -8,23 +8,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(rg *gin.RouterGroup) {
+func RegisterDeviceRoutes(rg *gin.RouterGroup) {
 	deviceGroup := rg.Group("/device")
 	{
-		deviceGroup.GET("/", GetList)
-		deviceGroup.POST("/", PostData)
-		deviceGroup.PUT("/:id", UpdateData)
-		deviceGroup.DELETE("/:id", DelData)
+		deviceGroup.GET("/", getList)
+		deviceGroup.POST("/", postData)
+		deviceGroup.PUT("/:id", updateData)
+		deviceGroup.DELETE("/:id", delData)
 	}
 }
 
-func GetList(c *gin.Context) {
-  db, err := sqlite.InitDB()
+func getList(c *gin.Context) {
+  db, err := lib.InitDB()
   if err != nil {
   	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
   }
   defer db.Close()
-  list, err := sqlite.GetDevice(db)
+  list, err := lib.GetDevice(db)
   if err != nil {
   	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
   }
@@ -32,8 +32,8 @@ func GetList(c *gin.Context) {
   c.JSON(http.StatusOK, gin.H{"data": list})
 }
 
-func PostData(c *gin.Context) {
-  var body sqlite.Device
+func postData(c *gin.Context) {
+  var body lib.Device
 
   if err := c.ShouldBindJSON(&body); err != nil {
       c.JSON(http.StatusBadRequest, gin.H{
@@ -42,12 +42,12 @@ func PostData(c *gin.Context) {
       return
   }
 
-  db, err := sqlite.InitDB()
+  db, err := lib.InitDB()
   if err != nil {
   	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
   }
   defer db.Close()
-  id, err := sqlite.CreateDevice(db,body)
+  id, err := lib.CreateDevice(db,body)
   if err != nil {
     c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	return 
@@ -56,21 +56,21 @@ func PostData(c *gin.Context) {
   c.JSON(http.StatusOK, gin.H{"data": id})
 }
 
-func UpdateData(c *gin.Context) {
+func updateData(c *gin.Context) {
   //id := c.Param("id")
-  var body sqlite.Device
+  var body lib.Device
 
   if err := c.ShouldBindJSON(&body); err != nil {
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
       return
   }
 
-  db, err := sqlite.InitDB()
+  db, err := lib.InitDB()
   if err != nil {
   	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
   }
   defer db.Close()
-  uid, err := sqlite.UpdateDevice(db,body)
+  uid, err := lib.UpdateDevice(db,body)
   if err != nil {
     c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	return 
@@ -80,15 +80,15 @@ func UpdateData(c *gin.Context) {
 
 }
 
-func DelData(c *gin.Context) {
+func delData(c *gin.Context) {
   id := c.Param("id")
 
-  db, err := sqlite.InitDB()
+  db, err := lib.InitDB()
   if err != nil {
   	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
   }
   defer db.Close()
-  uid, err := sqlite.DeleteDevice(db,id)
+  uid, err := lib.DeleteDevice(db,id)
   if err != nil {
     c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	return 
