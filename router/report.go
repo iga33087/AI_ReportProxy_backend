@@ -3,6 +3,7 @@ package router
 import (
 	//"log"
 	//"fmt"
+  "time"
 	"database/sql"
 	"net/http"
 	"AI-Proxy-backend/lib"
@@ -41,15 +42,18 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
         return
     }
 
-    hash := lib.HashByKey(list.UUID + body["productId"].(string),list.Key)
+    timestamp := time.Now().Unix()
+    hash := lib.HashByKey(string(timestamp) + list.UUID + body["productId"].(string),list.Key)
     
     header := map[string]string {
 		"Authorization":hash,
-	}
-    payload := map[string]any {
-		"uuid":list.UUID,
-		"productId":body["productId"],
-	}
+	  }
+      payload := map[string]any {
+	  	"uuid":list.UUID,
+	  	"productId":body["productId"],
+      "timestamp":timestamp,
+	  }
+    
     res,err := lib.Call("http://localhost:8090","GET",header,payload)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
