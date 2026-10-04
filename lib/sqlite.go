@@ -8,6 +8,7 @@ import (
 
 type Device struct {
 	ID    int `json:"id"`
+	ProductId string `json:"productId"`
 	Name  string `json:"name"`
 	UUID string `json:"uuid"`
 	Key string `json:"key"`
@@ -61,6 +62,7 @@ func createTable(db *sql.DB) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS devices (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		productId TEXT NOT NULL,
 		name TEXT NOT NULL,
 		key TEXT NOT NULL,
 		uuid TEXT NOT NULL UNIQUE,
@@ -87,6 +89,7 @@ func createTable(db *sql.DB) error {
 func GetDevice(db *sql.DB) ([]Device, error) {
 	query := `SELECT 
 	id, 
+	productId,
 	name, 
 	uuid, 
 	key, 
@@ -119,6 +122,7 @@ func GetDevice(db *sql.DB) ([]Device, error) {
 
 		err := rows.Scan(
 			&device.ID,
+			&device.ProductId,
 			&device.Name,
 			&device.UUID,
 			&device.Key,
@@ -152,6 +156,7 @@ func GetDevice(db *sql.DB) ([]Device, error) {
 func GetDeviceById(db *sql.DB,id any) (*Device, error) {
 	query := `SELECT 
 	id, 
+	productId, 
 	name, 
 	uuid, 
 	key, 
@@ -173,6 +178,7 @@ func GetDeviceById(db *sql.DB,id any) (*Device, error) {
 
 	err := db.QueryRow(query, id).Scan(
 		&d.ID, 
+		&d.ProductId, 
 		&d.Name, 
 		&d.UUID, 
 		&d.Key,
@@ -200,6 +206,7 @@ func GetDeviceById(db *sql.DB,id any) (*Device, error) {
 func CreateDevice(db *sql.DB, device Device) (int64, error) {
 	query := `INSERT INTO devices (
 	name, 
+	productId, 
 	uuid, 
 	key,
 	cpu_usage_summary,
@@ -215,11 +222,12 @@ func CreateDevice(db *sql.DB, device Device) (int64, error) {
 	top20DomainTrafficRanking,
 	top20DomainTrafficTypeRanking 
 	)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	result, err := db.Exec(
 		query, 
 		device.Name, 
+		device.ProductId,
 		device.UUID, 
 		device.Key,
 		device.HardwareData.CPU_Usage_Summary,
@@ -246,6 +254,7 @@ func CreateDevice(db *sql.DB, device Device) (int64, error) {
 func UpdateDevice(db *sql.DB,device Device) (any, error) {
 	query := `UPDATE devices SET 
 	name = ?, 
+	productId = ?,
 	uuid = ?, 
 	key = ?,
 	cpu_usage_summary = ?,
@@ -265,6 +274,7 @@ func UpdateDevice(db *sql.DB,device Device) (any, error) {
 	result, err := db.Exec(
 		query, 
 		device.Name, 
+		device.ProductId, 
 		device.UUID, 
 		device.Key, 
 		device.HardwareData.CPU_Usage_Summary,

@@ -2,7 +2,7 @@ package router
 
 import (
 	//"log"
-	//"fmt"
+	"fmt"
   "time"
 	"database/sql"
 	"net/http"
@@ -13,13 +13,42 @@ import (
 func RegisterReportRoutes(rg *gin.RouterGroup,db *sql.DB) {
 	reportGroup := rg.Group("/report")
 	{
-		reportGroup.GET("/", getTest)
+		reportGroup.POST("/test", getTest(db))
 		reportGroup.POST("/", postReportData(db))
 	}
 }
 
-func getTest(c *gin.Context) {
-  c.JSON(http.StatusOK, gin.H{"data": "1111"})
+func getTest(db *sql.DB) gin.HandlerFunc {
+  return func(c *gin.Context) {
+    var body map[string]any
+    if err := c.ShouldBindJSON(&body); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    list, err := lib.GetDeviceById(db,body["deviceId"])
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    fmt.Println("原始資料",list.UserTrafficData.Top20_UserTraffic_Group_Ranking) //Top20_UserTraffic_Ranking
+    jsonData,err := lib.TextToJSONArray(list.UserTrafficData.Top20_UserTraffic_Group_Ranking) //Top20_UserTraffic_Ranking
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "JSON無法解析"})
+        return
+    }
+    jsonC,reTable := lib.ValueConvert(jsonData)
+    for jsonCIndex,jsonCVal := range jsonC {
+      fmt.Println("去識別化資料",jsonCIndex," - ",jsonCVal)
+    }
+
+    for reTableIndex,reTableVal := range reTable {
+      fmt.Println("對照表",reTableIndex," - ",reTableVal.RestoreTable)
+    }
+
+    c.JSON(http.StatusOK, gin.H{"data": "OK"})
+  }
 }
 
 func postReportData(db *sql.DB) gin.HandlerFunc {
@@ -43,14 +72,14 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
     }
 
     timestamp := time.Now().Unix()
-    hash := lib.HashByKey(string(timestamp) + list.UUID + body["productId"].(string),list.Key)
+    hash := lib.HashByKey(string(timestamp) + list.UUID + list.ProductId,list.Key)
     
     header := map[string]string {
 		"Authorization":hash,
 	  }
       payload := map[string]any {
 	  	"uuid":list.UUID,
-	  	"productId":body["productId"],
+	  	"productId":list.ProductId,
       "timestamp":timestamp,
 	  }
     
