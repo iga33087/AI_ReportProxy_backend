@@ -2,6 +2,7 @@ package lib
 
 import (
     "fmt"
+	"errors"
 	"encoding/json"
 	"bytes"
 	"time"
@@ -46,12 +47,18 @@ func Call(url string,method string,header map[string]string, payload map[string]
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("讀取回應失敗: %v\n", err)
 		return nil,err
 	}
-    if resp.StatusCode != http.StatusOK { // 或者 resp.StatusCode >= 400
-        fmt.Printf("API 發生錯誤，狀態碼：%d\n", resp.StatusCode)
-        return nil,fmt.Errorf("API 請求失敗，狀態碼：%d / 錯誤訊息：%d ", resp.StatusCode,string(body))
+    if resp.StatusCode != http.StatusOK {
+		err := errors.New(string(body))
+        return nil,err
     }
-	return string(body),nil
+
+	var result map[string]any
+
+    if err := json.Unmarshal(body, &result); err != nil {
+    	return nil, err
+    }
+
+	return result,nil
 }

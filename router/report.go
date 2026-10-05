@@ -3,9 +3,10 @@ package router
 import (
 	//"log"
 	"fmt"
-  "time"
+    "time"
 	"database/sql"
 	"net/http"
+	"encoding/json"
 	"AI-Proxy-backend/lib"
 	"github.com/gin-gonic/gin"
 )
@@ -96,13 +97,20 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
       "timestamp":timestamp,
       "reportRawData":reportRawData,
 	  }
-
-    fmt.Println(111117,payload)
     
     res,err := lib.Call("http://localhost:8090","GET",header,payload)
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-  	    return 
+    	var errorJSON map[string]any
+    
+    	if jsonErr := json.Unmarshal([]byte(err.Error()), &errorJSON); jsonErr != nil {
+    		c.JSON(http.StatusBadRequest, gin.H{
+    			"error": err.Error(),
+    		})
+    		return
+    	}
+    
+    	c.JSON(http.StatusBadRequest, errorJSON)
+    	return
     }
     c.JSON(http.StatusOK, gin.H{"data": res})
   }
