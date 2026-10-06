@@ -2,7 +2,7 @@ package sqllib
 
 import (
 	//"fmt"
-	//"time"
+	"time"
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -12,6 +12,7 @@ type Report struct {
 	DeviceId int `json:"deviceId"`
 	ReportType  int `json:"reportType"`
 	ReportData string `json:"reportData"`
+	CreateAt time.Time `json:"create_at"`
 }
 
 // 查詢全部
@@ -20,7 +21,8 @@ func GetReport(db *sql.DB) ([]Report, error) {
 	id, 
 	deviceId,
 	reportType, 
-	reportData 
+	reportData,
+	created_at 
 	FROM reports`
 
 	rows, err := db.Query(query)
@@ -41,6 +43,7 @@ func GetReport(db *sql.DB) ([]Report, error) {
 			&report.DeviceId,
 			&report.ReportType,
 			&report.ReportData,
+			&report.CreateAt,
 		)
 		if err != nil {
 			return nil, err
@@ -61,7 +64,8 @@ func GetReportById(db *sql.DB,id any) (*Report, error) {
 	id, 
 	deviceId, 
 	reportType, 
-	reportData 
+	reportData,
+	created_at 
 	FROM reports WHERE id = ?`
 
 	var r Report
@@ -71,6 +75,7 @@ func GetReportById(db *sql.DB,id any) (*Report, error) {
 		&r.DeviceId, 
 		&r.ReportType, 
 		&r.ReportData,
+		&r.CreateAt,
 	)
 	
 	if err != nil {

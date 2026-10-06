@@ -19,6 +19,7 @@ func RegisterReportRoutes(rg *gin.RouterGroup,db *sql.DB) {
 		reportGroup.GET("/", getReportList(db))
         reportGroup.GET("/:id", getReportOne(db))
 		reportGroup.POST("/", postReportData(db))
+		reportGroup.DELETE("/:id", delReportData(db))
 	}
 }
 
@@ -254,4 +255,17 @@ func getReportRawData(data *sqllib.Device, reportType int) (any,map[string]*lib.
 		  return r,t
   }
 	return nil,nil
+}
+
+func delReportData(db *sql.DB) gin.HandlerFunc {
+  return func(c *gin.Context) {
+    id := c.Param("id")
+    uid, err := sqllib.DeleteReport(db,id)
+    if err != nil {
+      c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	    return 
+    }
+    fmt.Println("刪除成功，ID:", uid)
+    c.JSON(http.StatusOK, gin.H{"data": uid})
+  }
 }
