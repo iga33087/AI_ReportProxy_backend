@@ -3,13 +3,13 @@ package main
 import (
 	"log"
 	"net/http"
-    "AI-Proxy-backend/lib"
+	"AI-Proxy-backend/sqllib"
 	"AI-Proxy-backend/router"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	db, err := lib.InitDB()
+	db, err := sqllib.InitDB()
 	if err != nil {
 		log.Fatalf("資料庫連線失敗: %v", err)
 	}

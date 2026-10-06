@@ -8,18 +8,21 @@ import (
 	"net/http"
 	"encoding/json"
 	"AI-Proxy-backend/lib"
+	"AI-Proxy-backend/sqllib"
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterReportRoutes(rg *gin.RouterGroup,db *sql.DB) {
 	reportGroup := rg.Group("/report")
 	{
-		reportGroup.POST("/test", getTest(db))
+		reportGroup.POST("/test", getReportTest(db))
+		reportGroup.GET("/", getReportList(db))
+        reportGroup.GET("/:id", getReportOne(db))
 		reportGroup.POST("/", postReportData(db))
 	}
 }
 
-func getTest(db *sql.DB) gin.HandlerFunc {
+func getReportTest(db *sql.DB) gin.HandlerFunc {
   return func(c *gin.Context) {
     var body map[string]any
     if err := c.ShouldBindJSON(&body); err != nil {
@@ -27,7 +30,7 @@ func getTest(db *sql.DB) gin.HandlerFunc {
         return
     }
 
-    list, err := lib.GetDeviceById(db,body["deviceId"])
+    list, err := sqllib.GetDeviceById(db,body["deviceId"])
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
@@ -53,6 +56,31 @@ func getTest(db *sql.DB) gin.HandlerFunc {
   }
 }
 
+func getReportList(db *sql.DB) gin.HandlerFunc {
+  return func(c *gin.Context) {
+    list, err := sqllib.GetReport(db)
+    if err != nil {
+    	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+      return
+    }
+    fmt.Println("獲取成功:", list)
+    c.JSON(http.StatusOK, gin.H{"data": list})
+  }
+}
+
+func getReportOne(db *sql.DB) gin.HandlerFunc {
+  return func(c *gin.Context) {
+    id := c.Param("id")
+    list, err := sqllib.GetReportById(db,id)
+    if err != nil {
+    	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+      return
+    }
+    fmt.Println("獲取成功:", list)
+    c.JSON(http.StatusOK, gin.H{"data": list})
+  }
+}
+
 func postReportData(db *sql.DB) gin.HandlerFunc {
   return func(c *gin.Context) {
     var body map[string]any
@@ -67,7 +95,7 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
         return
     }
   
-    list, err := lib.GetDeviceById(db,body["deviceId"])
+    list, err := sqllib.GetDeviceById(db,body["deviceId"])
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
@@ -92,11 +120,11 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
 	  }
     payload := map[string]any {
 	  	"uuid":list.UUID,
-      "reportType":body["reportType"],
-      "name":list.Name,
+        "reportType":body["reportType"],
+        "name":list.Name,
 	  	"productId":list.ProductId,
-      "timestamp":timestamp,
-      "reportRawData":reportRawData,
+        "timestamp":timestamp,
+        "reportRawData":reportRawData,
 	  }
     
     res,err := lib.Call("http://localhost:8090/call","GET",header,payload)
@@ -115,13 +143,27 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
     }
 
 	restoreRes := lib.ToRegexp(res.(map[string]any),reTable)
-	fmt.Println(88889999999,restoreRes)
+
+	restoreResJSon, err := json.Marshal(restoreRes)
+	if err != nil {
+		return 
+	}
+	reportData := sqllib.Report{
+	  DeviceId:   int(body["deviceId"].(float64)),
+	  ReportType: int(body["reportType"].(float64)),
+	  ReportData: string(restoreResJSon),
+	}
+	_, createErr := sqllib.CreateReport(db,reportData)
+    if createErr != nil {
+      c.JSON(http.StatusBadRequest, gin.H{"error": createErr.Error()})
+	    return 
+    }
 
     c.JSON(http.StatusOK, restoreRes)
   }
 }
 
-func getReportRawData(data *lib.Device, reportType int) (any,map[string]*lib.ConvertItem) {
+func getReportRawData(data *sqllib.Device, reportType int) (any,map[string]*lib.ConvertItem) {
   if reportType == 1 {
       res := make(map[string]map[string]any)
 		  cpuArr, err := lib.TextToJSON[map[string]any](data.HardwareData.CPU_Usage_Summary)

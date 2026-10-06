@@ -5,24 +5,24 @@ import (
   "database/sql"
 	"fmt"
 	"net/http"
-	"AI-Proxy-backend/lib"
+  "AI-Proxy-backend/sqllib"
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterDeviceRoutes(rg *gin.RouterGroup,db *sql.DB) {
 	deviceGroup := rg.Group("/device")
 	{
-		deviceGroup.GET("/", getList(db))
-    deviceGroup.GET("/:id", getOne(db))
-		deviceGroup.POST("/", postData(db))
-		deviceGroup.PUT("/:id", updateData(db))
-		deviceGroup.DELETE("/:id", delData(db))
+		deviceGroup.GET("/", getDeviceList(db))
+    deviceGroup.GET("/:id", getDeviceOne(db))
+		deviceGroup.POST("/", postDeviceData(db))
+		deviceGroup.PUT("/:id", updateDeviceData(db))
+		deviceGroup.DELETE("/:id", delDeviceData(db))
 	}
 }
 
-func getList(db *sql.DB) gin.HandlerFunc {
+func getDeviceList(db *sql.DB) gin.HandlerFunc {
   return func(c *gin.Context) {
-    list, err := lib.GetDevice(db)
+    list, err := sqllib.GetDevice(db)
     if err != nil {
     	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
       return
@@ -32,10 +32,10 @@ func getList(db *sql.DB) gin.HandlerFunc {
   }
 }
 
-func getOne(db *sql.DB) gin.HandlerFunc {
+func getDeviceOne(db *sql.DB) gin.HandlerFunc {
   return func(c *gin.Context) {
     id := c.Param("id")
-    list, err := lib.GetDeviceById(db,id)
+    list, err := sqllib.GetDeviceById(db,id)
     if err != nil {
     	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
       return
@@ -45,16 +45,16 @@ func getOne(db *sql.DB) gin.HandlerFunc {
   }
 }
 
-func postData(db *sql.DB) gin.HandlerFunc {
+func postDeviceData(db *sql.DB) gin.HandlerFunc {
   return func(c *gin.Context) {
-    var body lib.Device
+    var body sqllib.Device
   
     if err := c.ShouldBindJSON(&body); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
   
-    id, err := lib.CreateDevice(db,body)
+    id, err := sqllib.CreateDevice(db,body)
     if err != nil {
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	    return 
@@ -64,17 +64,17 @@ func postData(db *sql.DB) gin.HandlerFunc {
   }
 }
 
-func updateData(db *sql.DB) gin.HandlerFunc {
+func updateDeviceData(db *sql.DB) gin.HandlerFunc {
   //id := c.Param("id")
   return func(c *gin.Context) {
-    var body lib.Device
+    var body sqllib.Device
   
     if err := c.ShouldBindJSON(&body); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
   
-    uid, err := lib.UpdateDevice(db,body)
+    uid, err := sqllib.UpdateDevice(db,body)
     if err != nil {
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	    return 
@@ -84,10 +84,10 @@ func updateData(db *sql.DB) gin.HandlerFunc {
   }
 }
 
-func delData(db *sql.DB) gin.HandlerFunc {
+func delDeviceData(db *sql.DB) gin.HandlerFunc {
   return func(c *gin.Context) {
     id := c.Param("id")
-    uid, err := lib.DeleteDevice(db,id)
+    uid, err := sqllib.DeleteDevice(db,id)
     if err != nil {
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	    return 

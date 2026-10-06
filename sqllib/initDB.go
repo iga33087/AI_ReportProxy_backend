@@ -1,4 +1,4 @@
-package lib
+package sqllib
 
 import (
 	//"fmt"
@@ -7,7 +7,7 @@ import (
 )
 
 func InitDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "./db/test.db")
+	db, err := sql.Open("sqlite3", "./db/test.db?_loc=auto")
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,8 @@ func createTable(db *sql.DB) error {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		deviceId INTEGER NOT NULL,
 		reportType INTEGER NOT NULL,
-		reportData TEXT
+		reportData TEXT,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 	`
 

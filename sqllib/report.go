@@ -1,7 +1,8 @@
-package lib
+package sqllib
 
 import (
 	//"fmt"
+	//"time"
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -60,7 +61,7 @@ func GetReportById(db *sql.DB,id any) (*Report, error) {
 	id, 
 	deviceId, 
 	reportType, 
-	reportData  
+	reportData 
 	FROM reports WHERE id = ?`
 
 	var r Report
