@@ -114,9 +114,10 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
     	return
     }
 
-    fmt.Println(3333,res)
+	restoreRes := lib.ToRegexp(res.(map[string]any),reTable)
+	fmt.Println(88889999999,restoreRes)
 
-    c.JSON(http.StatusOK, res)
+    c.JSON(http.StatusOK, restoreRes)
   }
 }
 
