@@ -3,7 +3,7 @@ package router
 import (
 	//"log"
 	"fmt"
-    "time"
+  "time"
 	"database/sql"
 	"net/http"
 	"encoding/json"
@@ -34,21 +34,21 @@ func getTest(db *sql.DB) gin.HandlerFunc {
     }
     fmt.Println("原始資料",list)
 
-    rawData := getReportRawData(list,int(body["reportType"].(float64)))
-    if rawData == nil {
+    reportRawData,reTable := getReportRawData(list,int(body["reportType"].(float64)))
+    if reportRawData == nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "getReportRawData處理失敗"})
         return
     }
 
-    jsonC,reTable := lib.ValueConvert(rawData.(map[string][]map[string]any))
+    /*jsonC,reTable := lib.ValueConvert(rawData.(map[string][]map[string]any))
     for jsonCIndex,jsonCVal := range jsonC {
       fmt.Println("去識別化資料",jsonCIndex," - ",jsonCVal)
     }
 
     for reTableIndex,reTableVal := range reTable {
       fmt.Println("對照表",reTableIndex," - ",reTableVal.RestoreTable)
-    }
-    fmt.Println("11",jsonC)
+    }*/
+    fmt.Println("11",reportRawData,reTable)
     c.JSON(http.StatusOK, gin.H{"data": "OK"})
   }
 }
@@ -73,13 +73,13 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
         return
     }
 
-    rawData := getReportRawData(list,int(body["reportType"].(float64)))
-    if rawData == nil {
+    reportRawData,reTable := getReportRawData(list,int(body["reportType"].(float64)))
+    if reportRawData == nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "getReportRawData處理失敗"})
         return
     }
 
-    reportRawData,reTable := lib.ValueConvert(rawData.(map[string][]map[string]any))
+    //reportRawData,reTable := lib.ValueConvert(rawData.(map[string][]map[string]any))
 
     fmt.Println("去識別化資料",reportRawData)
     fmt.Println("對照表",reTable)
@@ -93,12 +93,13 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
     payload := map[string]any {
 	  	"uuid":list.UUID,
       "reportType":body["reportType"],
+      "name":list.Name,
 	  	"productId":list.ProductId,
       "timestamp":timestamp,
       "reportRawData":reportRawData,
 	  }
     
-    res,err := lib.Call("http://localhost:8090","GET",header,payload)
+    res,err := lib.Call("http://localhost:8090/call","GET",header,payload)
     if err != nil {
     	var errorJSON map[string]any
     
@@ -112,11 +113,14 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
     	c.JSON(http.StatusBadRequest, errorJSON)
     	return
     }
-    c.JSON(http.StatusOK, gin.H{"data": res})
+
+    fmt.Println(3333,res)
+
+    c.JSON(http.StatusOK, res)
   }
 }
 
-func getReportRawData(data *lib.Device, reportType int) any {
+func getReportRawData(data *lib.Device, reportType int) (any,map[string]*lib.ConvertItem) {
   if reportType == 1 {
       res := make(map[string]map[string]any)
 		  cpuArr, err := lib.TextToJSON[map[string]any](data.HardwareData.CPU_Usage_Summary)
@@ -155,7 +159,8 @@ func getReportRawData(data *lib.Device, reportType int) any {
 		  } else {
 		  	res["onlineUsersSummary"] = map[string]any{}
 		  }
-		  return res
+      r,t := lib.ValueConvert2(res)
+		  return r,t
   } else if reportType == 2 {
       res := make(map[string][]map[string]any)
 		  rankingArr, err := lib.TextToJSON[[]map[string]any](data.UserTrafficData.Top20_UserTraffic_Ranking)
@@ -170,7 +175,8 @@ func getReportRawData(data *lib.Device, reportType int) any {
 		  } else {
 		  	res["top20UserTrafficGroupRanking"] = []map[string]any{}
 		  }
-		  return res
+      r,t := lib.ValueConvert(res)
+		  return r,t
   } else if reportType == 3 {
       res := make(map[string][]map[string]any)
 		  rankingArr, err := lib.TextToJSON[[]map[string]any](data.ServiceTrafficData.Top20_ServiceTraffic_Ranking)
@@ -185,7 +191,8 @@ func getReportRawData(data *lib.Device, reportType int) any {
 		  } else {
 		  	res["top20ServiceTrafficTypeRanking"] = []map[string]any{}
 		  }
-		  return res
+      r,t := lib.ValueConvert(res)
+		  return r,t
   } else if reportType == 4 {
       res := make(map[string][]map[string]any)
 		  rankingArr, err := lib.TextToJSON[[]map[string]any](data.DomainTrafficData.Top20_DomainTraffic_Ranking)
@@ -200,7 +207,8 @@ func getReportRawData(data *lib.Device, reportType int) any {
 		  } else {
 		  	res["top20DomainTrafficTypeRanking"] = []map[string]any{}
 		  }
-		  return res
+      r,t := lib.ValueConvert(res)
+		  return r,t
   }
-	return nil
+	return nil,nil
 }

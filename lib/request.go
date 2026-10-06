@@ -59,6 +59,5 @@ func Call(url string,method string,header map[string]string, payload map[string]
     if err := json.Unmarshal(body, &result); err != nil {
     	return nil, err
     }
-
 	return result,nil
 }
