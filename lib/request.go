@@ -1,7 +1,7 @@
 package lib
 
 import (
-    "fmt"
+    //"fmt"
 	"errors"
 	"encoding/json"
 	"bytes"
@@ -16,12 +16,12 @@ var timeoutSec int = 120
 func createRequest(url string,method string,header map[string]string, payload map[string]any) (*http.Request, error) {
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Printf("JSON 序列化失敗: %v\n", err)
+		//fmt.Printf("JSON 序列化失敗: %v\n", err)
 		return nil, err
 	}
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		fmt.Printf("建立請求失敗: %v\n", err)
+		//fmt.Printf("建立請求失敗: %v\n", err)
 		return nil, err
 	}
 	for i,val := range header {

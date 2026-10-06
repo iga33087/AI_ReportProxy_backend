@@ -3,7 +3,7 @@ package router
 import (
 	//"log"
   "database/sql"
-	"fmt"
+	//"fmt"
 	"net/http"
   "AI-Proxy-backend/sqllib"
 	"github.com/gin-gonic/gin"
@@ -27,7 +27,7 @@ func getDeviceList(db *sql.DB) gin.HandlerFunc {
     	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
       return
     }
-    fmt.Println("獲取成功:", list)
+    //fmt.Println("獲取成功:", list)
     c.JSON(http.StatusOK, gin.H{"data": list})
   }
 }
@@ -40,7 +40,7 @@ func getDeviceOne(db *sql.DB) gin.HandlerFunc {
     	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
       return
     }
-    fmt.Println("獲取成功:", list)
+    //fmt.Println("獲取成功:", list)
     c.JSON(http.StatusOK, gin.H{"data": list})
   }
 }
@@ -59,7 +59,7 @@ func postDeviceData(db *sql.DB) gin.HandlerFunc {
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	    return 
     }
-    fmt.Println("新增成功，ID:", id)
+    //fmt.Println("新增成功，ID:", id)
     c.JSON(http.StatusOK, gin.H{"data": id})
   }
 }
@@ -79,7 +79,7 @@ func updateDeviceData(db *sql.DB) gin.HandlerFunc {
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	    return 
     }
-    fmt.Println("修改成功，ID:", uid)
+    //fmt.Println("修改成功，ID:", uid)
     c.JSON(http.StatusOK, gin.H{"data": uid})
   }
 }
@@ -92,7 +92,7 @@ func delDeviceData(db *sql.DB) gin.HandlerFunc {
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	    return 
     }
-    fmt.Println("刪除成功，ID:", uid)
+    //fmt.Println("刪除成功，ID:", uid)
     c.JSON(http.StatusOK, gin.H{"data": uid})
   }
 }

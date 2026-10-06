@@ -2,8 +2,8 @@ package router
 
 import (
 	//"log"
-	"fmt"
-  "time"
+	//"fmt"
+    "time"
 	"database/sql"
 	"net/http"
 	"encoding/json"
@@ -36,7 +36,7 @@ func getReportTest(db *sql.DB) gin.HandlerFunc {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
-    fmt.Println("原始資料",list)
+    //fmt.Println("原始資料",list)
 
     reportRawData,reTable := getReportRawData(list,int(body["reportType"].(float64)))
     if reportRawData == nil {
@@ -52,8 +52,7 @@ func getReportTest(db *sql.DB) gin.HandlerFunc {
     for reTableIndex,reTableVal := range reTable {
       fmt.Println("對照表",reTableIndex," - ",reTableVal.RestoreTable)
     }*/
-    fmt.Println("11",reportRawData,reTable)
-    c.JSON(http.StatusOK, gin.H{"data": "OK"})
+    c.JSON(http.StatusOK, gin.H{"reportRawData": reportRawData,"reTable":reTable})
   }
 }
 
@@ -64,7 +63,7 @@ func getReportList(db *sql.DB) gin.HandlerFunc {
     	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
       return
     }
-    fmt.Println("獲取成功:", list)
+    //fmt.Println("獲取成功:", list)
     c.JSON(http.StatusOK, gin.H{"data": list})
   }
 }
@@ -77,7 +76,7 @@ func getReportOne(db *sql.DB) gin.HandlerFunc {
     	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
       return
     }
-    fmt.Println("獲取成功:", list)
+    //fmt.Println("獲取成功:", list)
     c.JSON(http.StatusOK, gin.H{"data": list})
   }
 }
@@ -110,8 +109,8 @@ func postReportData(db *sql.DB) gin.HandlerFunc {
 
     //reportRawData,reTable := lib.ValueConvert(rawData.(map[string][]map[string]any))
 
-    fmt.Println("去識別化資料",reportRawData)
-    fmt.Println("對照表",reTable)
+    //fmt.Println("去識別化資料",reportRawData)
+    //fmt.Println("對照表",reTable)
 
     timestamp := time.Now().Unix()
     hash := lib.HashByKey(string(timestamp) + list.UUID + list.ProductId,list.Key)
@@ -265,7 +264,7 @@ func delReportData(db *sql.DB) gin.HandlerFunc {
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	    return 
     }
-    fmt.Println("刪除成功，ID:", uid)
+    //fmt.Println("刪除成功，ID:", uid)
     c.JSON(http.StatusOK, gin.H{"data": uid})
   }
 }
